@@ -1,7 +1,13 @@
 const player = {
     money: 0,
-    funds: 10,
+    funds: 1,
     multiplier: 1
+};
+
+const firstUpgrade = {
+    price: 10,
+    level: 0,
+    value: 1
 };
 
 var lastUpdate = new Date().getTime();
@@ -11,9 +17,12 @@ document.querySelectorAll("[name=shortenType]").forEach(
     e => e.onclick = () => scientific = (e.value === "scientific") ? true : false
 );
 
-document.getElementById("buyMultiplier").onclick = () => {
-    player.multiplier = (player.money / player.funds) * player.multiplier;
-    player.money = 0;
+document.getElementById("buyFirstUpgrade").onclick = () => {
+    firstUpgrade.level++;
+    player.money -= firstUpgrade.price;
+
+    firstUpgrade.value *= 1.83 * firstUpgrade.level;
+    firstUpgrade.price *= 1.83 * firstUpgrade.level;
 };
 
 
@@ -33,15 +42,34 @@ shorten = function(money) {
 	return money.toFixed(1);
 };
 
+shortenPrice = function(money) {
+	var temp = MoneyFormat.length;
+	var digitMul = Math.pow(10, 2);
+	for (var i = 0; i < MoneyFormat.length; i++) {
+		if ( Math.pow(10, temp * 3) <= money ) {
+			money = money / Math.pow(10, temp * 3);
+			return scientific ? money.toFixed(2) + 'e+' + (MoneyFormat.length-i)*3 : money.toFixed(2) + ' ' + MoneyFormat[i];
+		}
+		temp--;
+	}
+	return money.toFixed(2);
+};
+
 setInterval(function() {
     var thisUpdate = new Date().getTime();
     var diff = thisUpdate - lastUpdate;
     diff = diff / 100;
 
     document.getElementById("numbers").innerHTML = shorten(player.money);
-    document.getElementById("multiplier").innerHTML = shorten(player.multiplier);
+    document.getElementById("multiplier").innerHTML = shortenPrice(firstUpgrade.price);
 
-    player.money += player.funds*(1 + player.multiplier*0.25)*diff/10;
+    if (player.money > firstUpgrade.price) {
+        document.getElementById("buyFirstUpgrade").removeAttribute("disabled");
+    } else {
+        document.getElementById("buyFirstUpgrade").setAttribute("disabled", "true");        
+    }
+
+    player.money += player.funds * player.multiplier * firstUpgrade.value * diff/10;
 
     lastUpdate = thisUpdate;    
 }, 100);
